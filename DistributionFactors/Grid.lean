@@ -2,6 +2,7 @@ import Mathlib
 import Mathlib.Data.Matrix.Basic
 import Mathlib.Data.Vector.Basic
 import Mathlib.Algebra.BigOperators.Fin
+import DistributionFactors.Helper
 
 structure Grid (n : Nat) (l : Nat) where
   b_l : Fin l → ℝ
@@ -24,15 +25,6 @@ def b {n l : ℕ} (G : Grid n l) (n1 n2 : Fin n) : ℝ :=
     else
       0
 
-/-- A helper theorem to get a minus sign into a sum-/
-theorem neg_ite {α : Type _} [Ring α] (b : Prop) [Decidable b] (x y : α) :
-  - (if b then x else y) = if b then -x else -y := by
-  -- Rewrite -z as (-1) * z
-  rw [neg_eq_neg_one_mul]
-  -- Now pull out (-1) via mul_ite
-  rw [mul_ite]
-  -- Rewrite (-1)*x as -x and (-1)*y as -y
-  simp
 
 /--Prove the antisymmetry of b, will be helpful later to prove the matrix
 formulation-/
