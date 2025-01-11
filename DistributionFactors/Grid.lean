@@ -114,6 +114,6 @@ def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
       0
 
 /-- Prove equation 4 -/
-theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) : ∀ edge : Fin e, e_p G edge = (Matrix.mulVecᵣ (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
+theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) : ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
   intro e1
-  rw [e_p]
+  rw [e_p, Matrix.mulVec, Matrix.transpose]
