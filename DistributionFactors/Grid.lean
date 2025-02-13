@@ -136,22 +136,77 @@ theorem n_p_antisym {n e : Nat} (G: Grid n e) (n1 n2 : Fin n) (loopless_local: l
   case neg =>
     rfl
 
+/-- nodal_branch_sum sums up all the flows leaving or entering the node via branches. If kirchhoff holds, this should be equivalent to the injection at
+the station-/
+def nodal_branch_sum {n e : ℕ} (G: Grid n e) (n1: Fin n) : ℝ :=
+  ∑ j : Fin e,
+    if G.e_from j = n1 then
+      e_p G j
+    else if G.e_to j = n1 then
+      -e_p G j
+    else
+      0
+
+/--Now we prove that the nodal_branch_sum is the same as using n_p and summing over n2. This is helpful to create a second form of the kirchhoff that uses n_p-/
+theorem nodal_branch_sum_eq_sum_n_p {n e : Nat} (G: Grid n e) (loopless_local: loopless G) : ∀ n1 : Fin n, nodal_branch_sum G n1 = ∑ n2 : Fin n, n_p G n1 n2 := by
+  simp only [n_p, nodal_branch_sum]
+  intro nx
+  rw [Finset.sum_comm]
+  apply Finset.sum_congr rfl
+  intro ex
+  split_ifs with h1 h2
+  case pos =>
+    have h3: G.e_to ex ≠ nx := by
+      rw [loopless] at loopless_local
+      have h := loopless_local ex
+      rw [h1] at h
+      exact h.symm
+    rw [h1]
+    simp
+    have h4: ∀ x, (if G.e_to ex = x then G.e_p ex
+                 else if nx = x ∧ G.e_to ex = nx then -G.e_p ex
+                 else 0)
+           = if x = G.e_to ex then G.e_p ex else 0 := by
+      intro x
+      by_cases c: G.e_to ex = x
+      . simp [c]
+      . rw [if_neg c]
+        by_cases d : (nx = x ∧ G.e_to ex = nx)
+        . cases d
+          contradiction
+        . rw [eq_comm] at c
+          simp [d, c]
+    simp [h4]
+  case neg =>
+    intro _
+    rw [eq_comm]
+    apply Finset.sum_eq_zero
+    intro x _
+    rw [if_neg, if_neg]
+    intro c
+    rcases c
+    contradiction
+    rw [and_comm]
+    intro c
+    rcases c
+    contradiction
+  case pos =>
+    rw [h2]
+    simp
+    simp [h1]
 
 
 /-- The kirchhoff current law states that all flows from/to a node need to sum up. This is roughly equal to equation 2 in the paper, though the paper is a bit lax here -/
 def kirchhoff {n e : Nat} (G : Grid n e) : Prop :=
   ∀ i : Fin n,
-    G.p i = ∑ j : Fin e,
-      if G.e_from j = i then
-        e_p G j
-      else if G.e_to j = i then
-        -e_p G j
-      else
-        0
+    G.p i = nodal_branch_sum G i
 
--- We can write the kirchhoff law in a nodal version
--- theorem nodal_kirchhoff {n e : Nat} (G: Grid n e) (kirchhoff_local: kirchhoff G) (loopless_local: loopless G) : ∀ i : Fin n, G.p i = ∑ j : Fin n, n_p G i j := by
---   simp only [n_p]
+-- We can write the kirchhoff law in a nodal version using our nodal_branch_sum_eq_sum_n_p theorem
+theorem nodal_kirchhoff {n e : Nat} (G: Grid n e) (kirchhoff_local: kirchhoff G) (loopless_local: loopless G) : ∀ i : Fin n, G.p i = ∑ j : Fin n, n_p G i j := by
+  intro i
+  rw [← nodal_branch_sum_eq_sum_n_p]
+  rw [kirchhoff_local]
+  apply loopless_local
 
 
 /-- Define the node-edge incidence matrix as in equation 3-/
