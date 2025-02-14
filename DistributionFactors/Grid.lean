@@ -196,7 +196,7 @@ theorem nodal_branch_sum_eq_sum_n_p {n e : Nat} (G: Grid n e) (loopless_local: l
     simp [h1]
 
 
-/-- The kirchhoff current law states that all flows from/to a node need to sum up. This is roughly equal to equation 2 in the paper, though the paper is a bit lax here -/
+/-- The kirchhoff current law states that all flows from/to a node plus the injection need to sum to zero. This is roughly equal to equation 2 in the paper, though the paper is a bit lax here -/
 def kirchhoff {n e : Nat} (G : Grid n e) : Prop :=
   ∀ i : Fin n,
     G.p i = nodal_branch_sum G i
