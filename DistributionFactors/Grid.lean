@@ -1,5 +1,6 @@
 import Mathlib
 import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Matrix.Mul
 import Mathlib.Data.Vector.Basic
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Algebra.BigOperators.Group.Finset
@@ -220,9 +221,7 @@ def node_edge_incidence {n e : Nat} (G : Grid n e) : Matrix (Fin n) (Fin e) ℝ 
       0
 
 
-/-- Prove equation 4 -/
--- theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (kirchhoff_local: kirchhoff G) : ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
---   simp_rw
+
 
 def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
   fun (edge1: Fin e) (edge2 : Fin e) =>
@@ -230,3 +229,20 @@ def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
       G.b_e edge1
     else
       0
+
+/-- Prove equation 4 -/
+theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (kirchhoff_local: kirchhoff G) : ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
+  intro edge
+  -- Unfold the matrix product and mulVec into their sum‐of‐products form:
+  simp [Matrix.mulVec, Matrix.transpose, Matrix.mul_apply, diagonal_b, node_edge_incidence, dotProduct, e_p, eq_comm, neg_ite, if_if_eq_and]
+  have h1 : (∀ x : Fin n, (∑ x_1 : Fin e,
+        if x = G.e_from x_1 then if edge = x_1 then G.b_e edge else 0
+        else if x = G.e_to x_1 ∧ edge = x_1 then -G.b_e edge else 0) = if x = G.e_from edge then G.b_e edge else if x = G.e_to edge then -G.b_e edge else 0) := by
+    intro x
+    rw [Finset.sum_eq_single edge]
+    . simp
+    . intro x_l _ h2
+      simp [eq_comm] at h2
+      simp [h2]
+    . simp
+  simp [h1]

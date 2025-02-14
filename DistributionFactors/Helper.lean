@@ -9,3 +9,14 @@ theorem neg_ite {α : Type _} [Ring α] (b : Prop) [Decidable b] (x y : α) :
   rw [mul_ite]
   -- Rewrite (-1)*x as -x and (-1)*y as -y
   simp
+
+
+theorem if_if_eq_and {α : Type} {A B : Prop} [Decidable A] [Decidable B] (x y : α) :
+    (if A then (if B then x else y) else y) = if A ∧ B then x else y := by
+  by_cases hA : A
+  · -- case A = true
+    by_cases hB : B
+    · simp [hA, hB]
+    · simp [hA, hB]
+  · -- case A = false
+    simp [hA]
