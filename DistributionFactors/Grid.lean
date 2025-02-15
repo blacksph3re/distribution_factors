@@ -252,3 +252,9 @@ theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (loopless_loca
     rw [loopless] at loopless_local
     simp [loopless_local]
   simp [mul_sub, mul_neg, ← sub_eq_add_neg]
+
+/--Equation 5 from the paper. I am a bit disappointed that I didn't need my nodal version...-/
+theorem kirchhoff_matrix {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) : ∀ x : Fin n, G.p x = (Matrix.mulVec G.node_edge_incidence G.e_p) x := by
+  simp [Matrix.mulVec, node_edge_incidence, dotProduct]
+  simp [kirchhoff, nodal_branch_sum] at kirchhoff_local
+  exact kirchhoff_local
