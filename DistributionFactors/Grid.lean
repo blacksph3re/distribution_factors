@@ -231,7 +231,7 @@ def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
       0
 
 /-- Prove equation 4 -/
-theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (kirchhoff_local: kirchhoff G) : ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
+theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (loopless_local: loopless G): ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
   intro edge
   -- Unfold the matrix product and mulVec into their sum‐of‐products form:
   simp [Matrix.mulVec, Matrix.transpose, Matrix.mul_apply, diagonal_b, node_edge_incidence, dotProduct, e_p, eq_comm, neg_ite, if_if_eq_and]
@@ -246,3 +246,9 @@ theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (kirchhoff_loc
       simp [h2]
     . simp
   simp [h1]
+  -- the sum is only non-zero in two spots
+  rw [sum_two_points (G.e_from edge) (G.e_to edge)]
+  case ha =>
+    rw [loopless] at loopless_local
+    simp [loopless_local]
+  simp [mul_sub, mul_neg, ← sub_eq_add_neg]
