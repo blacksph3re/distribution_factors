@@ -221,8 +221,6 @@ def node_edge_incidence {n e : Nat} (G : Grid n e) : Matrix (Fin n) (Fin e) ℝ 
       0
 
 
-
-
 def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
   fun (edge1: Fin e) (edge2 : Fin e) =>
     if edge1 = edge2 then
@@ -260,8 +258,9 @@ theorem kirchhoff_matrix {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff 
   simp [kirchhoff, nodal_branch_sum] at kirchhoff_local
   simp [kirchhoff_local]
 
-/--Equation 6, which is just replacing in equation 4 and 5.-/
-theorem kirchhoff_theta {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) (loopless_local: loopless G): ∀ x : Fin n, G.p x = (G.node_edge_incidence * G.diagonal_b * G.node_edge_incidence.transpose).mulVec G.θ x := by
+/--Equation 6 (the first half), which is just replacing in equation 4 and 5.-/
+theorem kirchhoff_theta {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) (loopless_local: loopless G): G.p = (G.node_edge_incidence * G.diagonal_b * G.node_edge_incidence.transpose).mulVec G.θ := by
+  ext x
   rw [Matrix.mul_assoc G.node_edge_incidence G.diagonal_b G.node_edge_incidence.transpose]
   rw [matrix_mul_vec_assoc]
   rw [← branch_flow_vec_eq_branch_flow]
@@ -270,4 +269,20 @@ theorem kirchhoff_theta {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G
   rw [kirchhoff_matrix]
   case kirchhoff_local =>
     simp [kirchhoff_local]
-  simp
+
+/--Define the slackless B matrix-/
+def nodal_susceptance_matrix_full {n e : ℕ} (G : Grid n e) : Matrix (Fin n) (Fin n) ℝ :=
+  fun (n1: Fin n) (n2 : Fin n) =>
+    if n1 = n2 then
+      ∑ n3 : Fin n, G.b n1 n3
+    else
+      - G.b n1 n2
+
+
+/--Equation 7 (aka B is equivalent to the nodal susceptance definition given in the paper). This will also trivially prove the second half of equation 6-/
+theorem nodal_susceptance_matrix_eq_B {n e : ℕ} (G : Grid n e) : G.nodal_susceptance_matrix_full = G.node_edge_incidence * G.diagonal_b * G.node_edge_incidence.transpose := by
+  ext n1 n2
+  simp [nodal_susceptance_matrix_full, Matrix.transpose, Matrix.mul_apply, node_edge_incidence, diagonal_b, neg_ite]
+  by_cases h : n1=n2
+  case pos => -- First prove the diagonal
+    simp [h]
