@@ -231,8 +231,8 @@ def diagonal_b {n e : Nat} (G : Grid n e) : Matrix (Fin e) (Fin e) ℝ :=
       0
 
 /-- Prove equation 4 -/
-theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (loopless_local: loopless G): ∀ edge : Fin e, e_p G edge = (Matrix.mulVec (G.diagonal_b * G.node_edge_incidence.transpose) G.θ) edge := by
-  intro edge
+theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (loopless_local: loopless G): e_p G = ((G.diagonal_b * G.node_edge_incidence.transpose).mulVec G.θ) := by
+  ext edge
   -- Unfold the matrix product and mulVec into their sum‐of‐products form:
   simp [Matrix.mulVec, Matrix.transpose, Matrix.mul_apply, diagonal_b, node_edge_incidence, dotProduct, e_p, eq_comm, neg_ite, if_if_eq_and]
   have h1 : (∀ x : Fin n, (∑ x_1 : Fin e,
@@ -253,8 +253,21 @@ theorem branch_flow_vec_eq_branch_flow {n e : Nat} (G : Grid n e) (loopless_loca
     simp [loopless_local]
   simp [mul_sub, mul_neg, ← sub_eq_add_neg]
 
-/--Equation 5 from the paper. I am a bit disappointed that I didn't need my nodal version...-/
-theorem kirchhoff_matrix {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) : ∀ x : Fin n, G.p x = (Matrix.mulVec G.node_edge_incidence G.e_p) x := by
+/--Equation 5 from the paper. I am a bit disappointed that I didn't need my nodal kirchhoff version...-/
+theorem kirchhoff_matrix {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) : G.p = Matrix.mulVec G.node_edge_incidence G.e_p := by
+  ext i
   simp [Matrix.mulVec, node_edge_incidence, dotProduct]
   simp [kirchhoff, nodal_branch_sum] at kirchhoff_local
-  exact kirchhoff_local
+  simp [kirchhoff_local]
+
+/--Equation 6, which is just replacing in equation 4 and 5.-/
+theorem kirchhoff_theta {n e : ℕ} (G : Grid n e) (kirchhoff_local: kirchhoff G) (loopless_local: loopless G): ∀ x : Fin n, G.p x = (G.node_edge_incidence * G.diagonal_b * G.node_edge_incidence.transpose).mulVec G.θ x := by
+  rw [Matrix.mul_assoc G.node_edge_incidence G.diagonal_b G.node_edge_incidence.transpose]
+  rw [matrix_mul_vec_assoc]
+  rw [← branch_flow_vec_eq_branch_flow]
+  case loopless_local =>
+    exact loopless_local
+  rw [kirchhoff_matrix]
+  case kirchhoff_local =>
+    simp [kirchhoff_local]
+  simp

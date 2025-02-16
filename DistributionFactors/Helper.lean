@@ -1,4 +1,7 @@
+import Mathlib
 import Mathlib.Algebra.BigOperators.Fin
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Matrix.Mul
 
 /-- A helper theorem to get a minus sign into a sum-/
 theorem neg_ite {α : Type _} [Ring α] (b : Prop) [Decidable b] (x y : α) :
@@ -39,3 +42,9 @@ theorem sum_two_points {α β: Type*} [AddCommMonoid β] [Fintype α] [Decidable
   . simp
     intro z hx hy
     simp [hx, hy]
+
+
+theorem matrix_mul_vec_assoc {m n p : ℕ} (A : Matrix (Fin m) (Fin n) ℝ) (B : Matrix (Fin n) (Fin p) ℝ) (v : (Fin p) → ℝ) :
+  ((A * B).mulVec v) = A.mulVec (B.mulVec v) := by
+  ext i
+  simp [dotProduct_assoc]

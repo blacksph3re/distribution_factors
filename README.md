@@ -10,5 +10,6 @@ From this I was already able to derive
 - antisymmetry of flows
 - If you sum all edges to a node that's the same as summing all node-to-node flows. So I have two ways of writing kirchhoff now.
 - Equation 4 + 5 in the paper (Matrix form equal to kirchhoff)
+- Equation 6
 
-Next up, equation 6+7! 
+Next up, equation 7, which is just a different formulation of the middle matrix 
